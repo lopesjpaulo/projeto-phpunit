@@ -149,58 +149,15 @@ class AccountService
 
         $balance = $this->checkBalance($account, $requestData);
 
-        $notes = $this->calculateNote($requestData['value']);
-
         $returnUpdate = $this->accountRepository->update($balance, $this->getId($account));
 
         $this->extractRepository->createWithdraw($requestData);
 
         if($returnUpdate) {
-            return $notes;
+            return ['success' => true, 'code' => 200];
         }
 
         return ['success' => false, 'code' => 400];
-    }
-
-    /**
-     * Calcula as notas resultantes do saque
-     * 
-     * @param int $value
-     * @return array
-     */
-    private function calculateNote(int $value): array
-    {
-        $n100 = 0;
-        $n50 = 0;
-        $n20 = 0;
-            
-        if($value < 20){
-            throw new Exception('Saque não é possível!', 400);
-        }else{
-            if($value >= 100){
-                $n100 = intdiv($value, 100);
-                $value = $value - ($n100 * 100);
-            }
-            if(($value > 0) && ($value % 20) == 0){
-                $n20 = intdiv($value, 20);
-                $value = 0;
-            }
-            if(($value > 0) && ($value % 50) == 0){
-                $n50 = 1;
-                $value = 0;
-            }
-            if(($value > 0) && ((($value % 50) == 20) || (($value % 50) == 40))){
-                $n50 = 1;
-                $n20 = intdiv(($value - 50), 20);
-                $value = 0;
-            }
-	   
-            if($value == 0){
-                return (['n100' => $n100, 'n50' => $n50, 'n20' => $n20]);
-            }else{
-                throw new Exception('Saque não é possível!', 400);
-            }
-        }
     }
 
     /**
